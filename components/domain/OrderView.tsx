@@ -65,7 +65,7 @@ export function OrderView() {
       </div>
 
       {/* Nota imprimível */}
-      <div className="overflow-x-auto rounded-xl border border-border bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-border bg-white shadow-sm">
         <OrderNote order={lastOrder} />
       </div>
     </div>
