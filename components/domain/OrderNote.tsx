@@ -1,5 +1,4 @@
-"use client"
-
+import { BRAND } from "@/lib/config/brand"
 import { formatCurrency, formatDate } from "@/lib/utils/format"
 import type { Order } from "@/lib/types"
 
@@ -18,7 +17,7 @@ export function OrderNote({ order }: OrderNoteProps) {
         style={{ background: "linear-gradient(135deg, #6B3FA0 0%, #3B82C8 100%)", color: "#ffffff" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/attivus-light.svg" alt="Catálogo Attivus" className="h-10 w-auto" />
+        <img src={BRAND.logoLight} alt="Catálogo Attivus" className="h-10 w-auto" />
         <div className="text-right">
           <p className="text-lg font-bold leading-tight">{order.id}</p>
           <p className="text-sm" style={{ color: "rgba(255,255,255,0.85)" }}>

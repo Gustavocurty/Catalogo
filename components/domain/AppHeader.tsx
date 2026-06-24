@@ -5,6 +5,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { BRAND } from "@/lib/config/brand"
 import { useSeller } from "@/lib/hooks/useSeller"
 import { useCart } from "@/lib/hooks/useCart"
 
@@ -48,7 +49,7 @@ export function AppHeader({ backHref, title }: AppHeaderProps) {
         ) : null}
 
         <Image
-          src="/attivus-light.svg"
+          src={BRAND.logoLight}
           alt="Catálogo Attivus"
           width={150}
           height={40}

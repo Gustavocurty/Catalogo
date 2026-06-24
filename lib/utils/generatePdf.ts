@@ -1,4 +1,5 @@
 import jsPDF from "jspdf"
+import { BRAND } from "@/lib/config/brand"
 import type { Order } from "@/lib/types"
 import { formatCurrency, formatDate } from "./format"
 
@@ -116,7 +117,7 @@ export async function generateOrderPdf(order: Order): Promise<jsPDF> {
 
   let logoRight = MARGIN + 2
   try {
-    const logo = await loadImage("/attivus-light.svg")
+    const logo = await loadImage(BRAND.logoLight)
     const logoW = 38
     const logoH = (logoW * logo.height) / logo.width
     const logoY = (28 - logoH) / 2

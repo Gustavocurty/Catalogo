@@ -1,7 +1,10 @@
+import { withBasePath } from "./basePath"
+
 export const BRAND = {
   name: "Catálogo Attivus",
-  logoDark: "/attivus-dark.svg",
-  wallpaper: "/main-wallpaper.png",
+  logoLight: withBasePath("/attivus-light.svg"),
+  logoDark: withBasePath("/attivus-dark.svg"),
+  wallpaper: withBasePath("/main-wallpaper.png"),
   colors: {
     purple: "#6B3FA0",
     blue: "#4A6FC8",

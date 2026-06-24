@@ -1,6 +1,7 @@
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
 import { SellerForm } from "@/components/domain/SellerForm"
+import { BRAND } from "@/lib/config/brand"
 
 export default function LoginPage() {
   return (
@@ -8,7 +9,7 @@ export default function LoginPage() {
       {/* Fundo: wallpaper da marca + overlay com gradiente */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/main-wallpaper.png"
+          src={BRAND.wallpaper}
           alt=""
           fill
           priority
@@ -22,7 +23,7 @@ export default function LoginPage() {
         <div className="mb-6 flex flex-col items-center text-center">
           <div className="mb-5 flex w-full justify-center rounded-xl bg-brand-gradient px-6 py-5">
               <Image
-                src="/attivus-light.svg"
+                src={BRAND.logoLight}
                 alt="Catálogo Attivus"
                 width={220}
                 height={64}
