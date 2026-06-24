@@ -1,11 +1,14 @@
 /** @type {import('next').NextConfig} */
-const isGithubPages = process.env.GITHUB_PAGES === "true"
-const basePath = isGithubPages ? "/CatalogoAttivus" : ""
+const repoName = process.env.GITHUB_REPOSITORY?.split("/")?.[1]
+const basePath =
+  process.env.NEXT_PUBLIC_BASE_PATH ??
+  (process.env.GITHUB_ACTIONS === "true" && repoName ? `/${repoName}` : "")
 
 const nextConfig = {
   output: "export",
+  trailingSlash: true,
   basePath,
-  assetPrefix: basePath ? `${basePath}/` : undefined,
+  assetPrefix: basePath || undefined,
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },
