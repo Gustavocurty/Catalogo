@@ -1,49 +1,43 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input, Label } from "@/components/ui/input"
+import { useHydrated } from "@/lib/hooks/useHydrated"
 import { useSeller } from "@/lib/hooks/useSeller"
 import { useToast } from "@/components/ui/toast"
+import { SELLER_CODE_PLACEHOLDER, sellerFromCode } from "@/lib/mocks"
 
 export function SellerForm() {
   const router = useRouter()
-  const { setSeller } = useSeller()
+  const hydrated = useHydrated()
+  const { seller, setSeller } = useSeller()
   const { toast } = useToast()
-  const [name, setName] = useState("")
   const [code, setCode] = useState("")
   const [error, setError] = useState("")
 
+  useEffect(() => {
+    if (hydrated && seller?.id) router.replace("/perfil")
+  }, [hydrated, router, seller?.id])
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim() || !code.trim()) {
-      setError("Preencha o nome e o código do vendedor.")
+    if (!code.trim()) {
+      setError("Informe o código de acesso.")
       return
     }
-    setSeller({ name: name.trim(), code: code.trim() })
-    toast(`Bem-vindo, ${name.trim().split(" ")[0]}!`)
-    router.push("/catalogo")
+    const current = sellerFromCode(code)
+    setSeller(current)
+    toast(`Bem-vindo, ${current.name.split(" ")[0]}!`)
+    router.push("/perfil")
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
-        <Label htmlFor="seller-name">Nome do vendedor</Label>
-        <Input
-          id="seller-name"
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value)
-            setError("")
-          }}
-          placeholder="Ex.: João da Silva"
-          autoComplete="name"
-        />
-      </div>
-      <div>
-        <Label htmlFor="seller-code">Código do vendedor</Label>
+        <Label htmlFor="seller-code">Código de acesso</Label>
         <Input
           id="seller-code"
           value={code}
@@ -51,7 +45,8 @@ export function SellerForm() {
             setCode(e.target.value)
             setError("")
           }}
-          placeholder="Ex.: VEND-042"
+          placeholder={SELLER_CODE_PLACEHOLDER}
+          autoComplete="username"
         />
       </div>
 
@@ -62,7 +57,7 @@ export function SellerForm() {
       )}
 
       <Button type="submit" size="lg" variant="action" className="mt-1 w-full">
-        Entrar no Catálogo
+        Entrar
         <ArrowRight />
       </Button>
     </form>

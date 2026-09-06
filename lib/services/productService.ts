@@ -1,18 +1,23 @@
-import type { Product } from "@/lib/types"
-import { products } from "@/lib/mocks/products"
-
-// Camada de serviço — preparada para troca futura por chamadas REST.
-// Hoje retorna os mocks com um pequeno atraso simulado.
-
-function delay<T>(value: T, ms = 350): Promise<T> {
-  return new Promise((resolve) => setTimeout(() => resolve(value), ms))
-}
+import * as demo from "@/lib/local/demoStore"
+import type { Product, StockMovement } from "@/lib/types"
 
 export const productService = {
-  async getAll(): Promise<Product[]> {
-    return delay(products)
+  async getAll(manage = false): Promise<Product[]> {
+    return demo.listProducts(manage)
   },
   async getById(id: string): Promise<Product | undefined> {
-    return delay(products.find((p) => p.id === id))
+    return demo.getProduct(id)
+  },
+  async create(input: Omit<Product, "id" | "stock" | "version"> & { initialStock?: number }): Promise<Product> {
+    return demo.createProduct(input)
+  },
+  async update(id: string, input: Partial<Product> & { version: number }): Promise<Product> {
+    return demo.updateProduct(id, input)
+  },
+  async listStock(id: string): Promise<StockMovement[]> {
+    return demo.listStock(id)
+  },
+  async adjustStock(id: string, input: { delta: number; reason: string; version: number }, actorName: string): Promise<Product> {
+    return demo.adjustStock(id, input.delta, input.reason, input.version, actorName)
   },
 }

@@ -20,7 +20,7 @@ export function OrderNote({ order }: OrderNoteProps) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={BRAND.logoLight} alt="Catálogo Attivus" className="h-9 w-auto sm:h-10" />
         <div className="sm:text-right">
-          <p className="text-base font-bold leading-tight sm:text-lg">{order.id}</p>
+          <p className="text-base font-bold leading-tight sm:text-lg">Pedido {order.number}</p>
           <p className="text-sm" style={{ color: "rgba(255,255,255,0.85)" }}>
             {formatDate(order.createdAt)}
           </p>

@@ -8,6 +8,7 @@ export function useOrder() {
   const discountPercent = useOrderStore((s) => s.discountPercent)
   const lastOrder = useOrderStore((s) => s.lastOrder)
   const setCustomer = useOrderStore((s) => s.setCustomer)
+  const clearCustomer = useOrderStore((s) => s.clearCustomer)
   const setNotes = useOrderStore((s) => s.setNotes)
   const setDiscountPercent = useOrderStore((s) => s.setDiscountPercent)
   const setLastOrder = useOrderStore((s) => s.setLastOrder)
@@ -19,6 +20,7 @@ export function useOrder() {
     discountPercent,
     lastOrder,
     setCustomer,
+    clearCustomer,
     setNotes,
     setDiscountPercent,
     setLastOrder,

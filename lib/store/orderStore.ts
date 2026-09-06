@@ -16,6 +16,7 @@ interface OrderState {
   discountPercent: number
   lastOrder: Order | null
   setCustomer: (customer: Partial<Customer>) => void
+  clearCustomer: () => void
   setNotes: (notes: string) => void
   setDiscountPercent: (value: number) => void
   setLastOrder: (order: Order) => void
@@ -30,6 +31,7 @@ export const useOrderStore = create<OrderState>()(
       discountPercent: 0,
       lastOrder: null,
       setCustomer: (customer) => set((state) => ({ customer: { ...state.customer, ...customer } })),
+      clearCustomer: () => set({ customer: emptyCustomer }),
       setNotes: (notes) => set({ notes }),
       setDiscountPercent: (value) => set({ discountPercent: value }),
       setLastOrder: (order) => set({ lastOrder: order }),

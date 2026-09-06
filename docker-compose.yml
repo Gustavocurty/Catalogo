@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: attivus
+      POSTGRES_PASSWORD: attivus
+      POSTGRES_DB: attivus
+    ports:
+      - "5432:5432"
+    volumes:
+      - attivus_pg:/var/lib/postgresql/data
+
+volumes:
+  attivus_pg:

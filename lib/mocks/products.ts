@@ -1,3 +1,4 @@
+import { withBasePath } from "@/lib/config/basePath"
 import type { Product } from "@/lib/types"
 
 export const products: Product[] = [
@@ -11,7 +12,7 @@ export const products: Product[] = [
     unit: "sc",
     price: 38.9,
     stock: 420,
-    imageUrl: "https://placehold.co/400x300/6B3FA0/FFFFFF?text=Cimento+CP-II+50kg",
+    imageUrl: withBasePath("/images/produtos/cimentos-e-argamassas/cim-cp2-50_cimento-cp-ii-50kg.jpg"),
   },
   {
     id: "p002",
@@ -22,7 +23,7 @@ export const products: Product[] = [
     unit: "sc",
     price: 32.5,
     stock: 180,
-    imageUrl: "https://placehold.co/400x300/6B3FA0/FFFFFF?text=Argamassa+Colante",
+    imageUrl: withBasePath("/images/produtos/cimentos-e-argamassas/arg-ac3-20_argamassa-colante-aciii-20kg.jpg"),
   },
   {
     id: "p003",
@@ -33,7 +34,7 @@ export const products: Product[] = [
     unit: "un",
     price: 9.8,
     stock: 300,
-    imageUrl: "https://placehold.co/400x300/6B3FA0/FFFFFF?text=Rejunte+Flex%C3%ADvel",
+    imageUrl: withBasePath("/images/produtos/cimentos-e-argamassas/arg-rej-1_rejunte-flexivel-cinza-1kg.jpg"),
   },
   {
     id: "p004",
@@ -44,7 +45,7 @@ export const products: Product[] = [
     unit: "sc",
     price: 18.4,
     stock: 250,
-    imageUrl: "https://placehold.co/400x300/6B3FA0/FFFFFF?text=Cal+Hidratada+CH-I",
+    imageUrl: withBasePath("/images/produtos/cimentos-e-argamassas/cal-hid-20_cal-hidratada-ch-i-20kg.jpg"),
   },
   {
     id: "p005",
@@ -55,7 +56,7 @@ export const products: Product[] = [
     unit: "sc",
     price: 21.9,
     stock: 160,
-    imageUrl: "https://placehold.co/400x300/6B3FA0/FFFFFF?text=Argamassa+Multiuso",
+    imageUrl: withBasePath("/images/produtos/cimentos-e-argamassas/arg-mul-25_argamassa-multiuso-25kg.jpg"),
   },
 
   // Tintas e Revestimentos
@@ -68,7 +69,7 @@ export const products: Product[] = [
     unit: "un",
     price: 289.9,
     stock: 75,
-    imageUrl: "https://placehold.co/400x300/4A6FC8/FFFFFF?text=Tinta+Acr%C3%ADlica+18L",
+    imageUrl: withBasePath("/images/produtos/tintas-e-revestimentos/tin-acr-18_tinta-acrilica-branca-18l.jpg"),
   },
   {
     id: "p007",
@@ -79,7 +80,7 @@ export const products: Product[] = [
     unit: "un",
     price: 42.5,
     stock: 120,
-    imageUrl: "https://placehold.co/400x300/4A6FC8/FFFFFF?text=Esmalte+Sint%C3%A9tico",
+    imageUrl: withBasePath("/images/produtos/tintas-e-revestimentos/tin-esm-900_esmalte-sintetico-branco-900ml.jpg"),
   },
   {
     id: "p008",
@@ -90,7 +91,7 @@ export const products: Product[] = [
     unit: "un",
     price: 68.0,
     stock: 90,
-    imageUrl: "https://placehold.co/400x300/4A6FC8/FFFFFF?text=Fundo+Preparador",
+    imageUrl: withBasePath("/images/produtos/tintas-e-revestimentos/tin-fun-36_fundo-preparador-parede-3-6l.jpg"),
   },
   {
     id: "p009",
@@ -101,7 +102,7 @@ export const products: Product[] = [
     unit: "sc",
     price: 134.9,
     stock: 60,
-    imageUrl: "https://placehold.co/400x300/4A6FC8/FFFFFF?text=Textura+R%C3%BAstica",
+    imageUrl: withBasePath("/images/produtos/tintas-e-revestimentos/tin-tex-25_textura-acrilica-rustica-25kg.jpg"),
   },
   {
     id: "p010",
@@ -112,7 +113,7 @@ export const products: Product[] = [
     unit: "un",
     price: 24.9,
     stock: 200,
-    imageUrl: "https://placehold.co/400x300/4A6FC8/FFFFFF?text=Rolo+de+L%C3%A3+23cm",
+    imageUrl: withBasePath("/images/produtos/tintas-e-revestimentos/tin-rol-23_rolo-la-antigota-23cm.jpg"),
   },
 
   // Ferragens e Fixadores
@@ -125,7 +126,7 @@ export const products: Product[] = [
     unit: "kg",
     price: 14.5,
     stock: 500,
-    imageUrl: "https://placehold.co/400x300/7C4DBC/FFFFFF?text=Prego+17x27",
+    imageUrl: withBasePath("/images/produtos/ferragens-e-fixadores/fer-pre-17_prego-17x27-cabeca-1kg.jpg"),
   },
   {
     id: "p012",
@@ -136,7 +137,7 @@ export const products: Product[] = [
     unit: "cj",
     price: 28.9,
     stock: 140,
-    imageUrl: "https://placehold.co/400x300/7C4DBC/FFFFFF?text=Parafuso+Bucha+6mm",
+    imageUrl: withBasePath("/images/produtos/ferragens-e-fixadores/fer-par-50_parafuso-bucha-6mm-cx50.jpg"),
   },
   {
     id: "p013",
@@ -147,7 +148,7 @@ export const products: Product[] = [
     unit: "pç",
     price: 12.3,
     stock: 220,
-    imageUrl: "https://placehold.co/400x300/7C4DBC/FFFFFF?text=Dobradi%C3%A7a+A%C3%A7o+3",
+    imageUrl: withBasePath("/images/produtos/ferragens-e-fixadores/fer-dob-3_dobradica-aco-3-par.jpg"),
   },
   {
     id: "p014",
@@ -158,7 +159,7 @@ export const products: Product[] = [
     unit: "un",
     price: 89.9,
     stock: 65,
-    imageUrl: "https://placehold.co/400x300/7C4DBC/FFFFFF?text=Fechadura+40mm",
+    imageUrl: withBasePath("/images/produtos/ferragens-e-fixadores/fer-fec-40_fechadura-externa-40mm.jpg"),
   },
   {
     id: "p015",
@@ -169,7 +170,7 @@ export const products: Product[] = [
     unit: "kg",
     price: 11.9,
     stock: 310,
-    imageUrl: "https://placehold.co/400x300/7C4DBC/FFFFFF?text=Arame+Recozido+18",
+    imageUrl: withBasePath("/images/produtos/ferragens-e-fixadores/fer-ara-18_arame-recozido-18-1kg.jpg"),
   },
 
   // Hidráulica e Elétrica
@@ -182,7 +183,7 @@ export const products: Product[] = [
     unit: "m",
     price: 27.5,
     stock: 130,
-    imageUrl: "https://placehold.co/400x300/3B82C8/FFFFFF?text=Tubo+PVC+25mm",
+    imageUrl: withBasePath("/images/produtos/hidraulica-e-eletrica/hid-tub-25_tubo-pvc-soldavel-25mm-6m.jpg"),
   },
   {
     id: "p017",
@@ -193,7 +194,7 @@ export const products: Product[] = [
     unit: "pç",
     price: 1.9,
     stock: 800,
-    imageUrl: "https://placehold.co/400x300/3B82C8/FFFFFF?text=Joelho+90+25mm",
+    imageUrl: withBasePath("/images/produtos/hidraulica-e-eletrica/hid-joe-25_joelho-90-soldavel-25mm.jpg"),
   },
   {
     id: "p018",
@@ -204,7 +205,7 @@ export const products: Product[] = [
     unit: "rolo",
     price: 189.9,
     stock: 70,
-    imageUrl: "https://placehold.co/400x300/3B82C8/FFFFFF?text=Cabo+Flex%C3%ADvel+2%2C5mm",
+    imageUrl: withBasePath("/images/produtos/hidraulica-e-eletrica/ele-cab-25_cabo-flexivel-2-5mm-100m.jpg"),
   },
   {
     id: "p019",
@@ -215,7 +216,7 @@ export const products: Product[] = [
     unit: "un",
     price: 16.9,
     stock: 240,
-    imageUrl: "https://placehold.co/400x300/3B82C8/FFFFFF?text=Disjuntor+20A",
+    imageUrl: withBasePath("/images/produtos/hidraulica-e-eletrica/ele-dis-20_disjuntor-monopolar-20a.jpg"),
   },
   {
     id: "p020",
@@ -226,7 +227,7 @@ export const products: Product[] = [
     unit: "cj",
     price: 13.4,
     stock: 360,
-    imageUrl: "https://placehold.co/400x300/3B82C8/FFFFFF?text=Tomada+2P%2BT+10A",
+    imageUrl: withBasePath("/images/produtos/hidraulica-e-eletrica/ele-tom-10_tomada-2p-t-10a-placa.jpg"),
   },
   {
     id: "p021",
@@ -237,7 +238,7 @@ export const products: Product[] = [
     unit: "un",
     price: 219.0,
     stock: 40,
-    imageUrl: "https://placehold.co/400x300/3B82C8/FFFFFF?text=Caixa+d%C3%81gua+310L",
+    imageUrl: withBasePath("/images/produtos/hidraulica-e-eletrica/hid-cx-310_caixa-dagua-310l.jpg"),
   },
 
   // Pisos e Revestimentos Cerâmicos
@@ -250,7 +251,7 @@ export const products: Product[] = [
     unit: "m²",
     price: 59.9,
     stock: 320,
-    imageUrl: "https://placehold.co/400x300/9B5DB8/FFFFFF?text=Porcelanato+60x60",
+    imageUrl: withBasePath("/images/produtos/pisos-e-revestimentos/pis-por-60_porcelanato-acetinado-60x60.jpg"),
   },
   {
     id: "p023",
@@ -261,7 +262,7 @@ export const products: Product[] = [
     unit: "m²",
     price: 27.9,
     stock: 480,
-    imageUrl: "https://placehold.co/400x300/9B5DB8/FFFFFF?text=Piso+Cer%C3%A2mico+45x45",
+    imageUrl: withBasePath("/images/produtos/pisos-e-revestimentos/pis-cer-45_piso-ceramico-45x45.jpg"),
   },
   {
     id: "p024",
@@ -272,7 +273,7 @@ export const products: Product[] = [
     unit: "m²",
     price: 34.5,
     stock: 260,
-    imageUrl: "https://placehold.co/400x300/9B5DB8/FFFFFF?text=Revestimento+32x60",
+    imageUrl: withBasePath("/images/produtos/pisos-e-revestimentos/rev-azu-32_revestimento-brilhante-32x60.jpg"),
   },
   {
     id: "p025",
@@ -283,7 +284,7 @@ export const products: Product[] = [
     unit: "pç",
     price: 6.9,
     stock: 500,
-    imageUrl: "https://placehold.co/400x300/9B5DB8/FFFFFF?text=Espa%C3%A7ador+2mm",
+    imageUrl: withBasePath("/images/produtos/pisos-e-revestimentos/pis-esp-2_espacador-cruzeta-2mm.jpg"),
   },
 
   // Ferramentas
@@ -296,7 +297,7 @@ export const products: Product[] = [
     unit: "un",
     price: 279.9,
     stock: 35,
-    imageUrl: "https://placehold.co/400x300/5A4A9E/FFFFFF?text=Furadeira+650W",
+    imageUrl: withBasePath("/images/produtos/ferramentas/ferr-fur-650_furadeira-impacto-650w.jpg"),
   },
   {
     id: "p027",
@@ -307,7 +308,7 @@ export const products: Product[] = [
     unit: "un",
     price: 22.9,
     stock: 150,
-    imageUrl: "https://placehold.co/400x300/5A4A9E/FFFFFF?text=Trena+5m",
+    imageUrl: withBasePath("/images/produtos/ferramentas/ferr-tre-30_trena-5m-25mm.jpg"),
   },
   {
     id: "p028",
@@ -318,7 +319,7 @@ export const products: Product[] = [
     unit: "un",
     price: 39.9,
     stock: 110,
-    imageUrl: "https://placehold.co/400x300/5A4A9E/FFFFFF?text=N%C3%ADvel+Alum%C3%ADnio+60cm",
+    imageUrl: withBasePath("/images/produtos/ferramentas/ferr-niv-60_nivel-aluminio-60cm.jpg"),
   },
   {
     id: "p029",
@@ -329,7 +330,7 @@ export const products: Product[] = [
     unit: "un",
     price: 27.5,
     stock: 130,
-    imageUrl: "https://placehold.co/400x300/5A4A9E/FFFFFF?text=Colher+Pedreiro+12",
+    imageUrl: withBasePath("/images/produtos/ferramentas/ferr-col-12_colher-pedreiro-12.jpg"),
   },
   {
     id: "p030",
@@ -340,7 +341,7 @@ export const products: Product[] = [
     unit: "cj",
     price: 44.9,
     stock: 85,
-    imageUrl: "https://placehold.co/400x300/5A4A9E/FFFFFF?text=Chaves+Fenda+6p%C3%A7",
+    imageUrl: withBasePath("/images/produtos/ferramentas/ferr-des-6_jogo-chaves-fenda-6pc.jpg"),
   },
 
   // Madeiras e Perfis
@@ -353,7 +354,7 @@ export const products: Product[] = [
     unit: "m",
     price: 8.9,
     stock: 400,
-    imageUrl: "https://placehold.co/400x300/7A5CA8/FFFFFF?text=Sarrafo+Pinus",
+    imageUrl: withBasePath("/images/produtos/madeiras-e-perfis/mad-sar-25_sarrafo-pinus-2-5x5-3m.jpg"),
   },
   {
     id: "p032",
@@ -364,7 +365,7 @@ export const products: Product[] = [
     unit: "pç",
     price: 189.0,
     stock: 45,
-    imageUrl: "https://placehold.co/400x300/7A5CA8/FFFFFF?text=Compensado+Naval",
+    imageUrl: withBasePath("/images/produtos/madeiras-e-perfis/mad-com-15_compensado-naval-15mm.jpg"),
   },
   {
     id: "p033",
@@ -375,7 +376,7 @@ export const products: Product[] = [
     unit: "pç",
     price: 19.9,
     stock: 220,
-    imageUrl: "https://placehold.co/400x300/7A5CA8/FFFFFF?text=Montante+Drywall",
+    imageUrl: withBasePath("/images/produtos/madeiras-e-perfis/per-mon-48_perfil-montante-drywall-48mm.jpg"),
   },
   {
     id: "p034",
@@ -386,7 +387,7 @@ export const products: Product[] = [
     unit: "m",
     price: 6.5,
     stock: 350,
-    imageUrl: "https://placehold.co/400x300/7A5CA8/FFFFFF?text=Ripa+Madeira",
+    imageUrl: withBasePath("/images/produtos/madeiras-e-perfis/mad-rip-2_ripa-madeira-2x5-3m.jpg"),
   },
   {
     id: "p035",
@@ -397,6 +398,6 @@ export const products: Product[] = [
     unit: "pç",
     price: 11.5,
     stock: 180,
-    imageUrl: "https://placehold.co/400x300/7A5CA8/FFFFFF?text=Cantoneira+3m",
+    imageUrl: withBasePath("/images/produtos/madeiras-e-perfis/per-can-3_cantoneira-perfurada-3m.jpg"),
   },
 ]

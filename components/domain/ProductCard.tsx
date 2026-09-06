@@ -1,47 +1,52 @@
 "use client"
 
 import Image from "next/image"
-import { Minus, Package, Plus } from "lucide-react"
+import { useState } from "react"
+import { Package, Plus } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { CATEGORY_BADGE } from "@/lib/config/brand"
 import { formatCurrency } from "@/lib/utils/format"
 import type { Product } from "@/lib/types"
-import { useToast } from "@/components/ui/toast"
+import { getQuantityMax, getQuantityStep, validateQuantity } from "@/lib/utils/quantity"
+import { QuantityControl } from "./QuantityControl"
 
 interface ProductCardProps {
   product: Product
   quantity: number
   onAdd: (product: Product) => void
   onRemove: (productId: string) => void
+  onQuantityChange: (productId: string, quantity: number) => void
+  disabled?: boolean
 }
 
-export function ProductCard({ product, quantity, onAdd, onRemove }: ProductCardProps) {
-  const { toast } = useToast()
+export function ProductCard({ product, quantity, onAdd, onRemove, onQuantityChange, disabled = false }: ProductCardProps) {
+  const [failedImage, setFailedImage] = useState<string | null>(null)
   const inOrder = quantity > 0
-
-  function handleAdd() {
-    onAdd(product)
-    if (!inOrder) toast(`${product.name} adicionado ao pedido`)
-  }
+  const step = getQuantityStep(product)
+  const available = getQuantityMax(product)
+  const blocked = product.active === false || product.saleBlocked
+  const soldOut = !Number.isFinite(product.stock) || product.stock < step
+  const canAdd = !disabled && !validateQuantity(quantity + step, { min: step, max: available, step })
 
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition-colors",
-        inOrder ? "border-2 border-accent" : "border-border",
+        "group hover-lift flex flex-col overflow-hidden rounded-xl border bg-card/80 shadow-sm backdrop-blur-sm",
+        inOrder ? "border-2 border-accent" : "border-border/80",
       )}
     >
       {/* Área visual / imagem do produto */}
-      <div className="relative flex aspect-[4/3] items-center justify-center bg-secondary">
-        {product.imageUrl ? (
+      <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-secondary">
+        {product.imageUrl && failedImage !== product.imageUrl ? (
           <Image
             src={product.imageUrl}
             alt={product.name}
             fill
-            className="object-cover"
+            className="hover-zoom object-cover"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            onError={() => setFailedImage(product.imageUrl)}
           />
         ) : (
           <Package className="size-10 text-primary/40" aria-hidden="true" />
@@ -51,11 +56,18 @@ export function ProductCard({ product, quantity, onAdd, onRemove }: ProductCardP
         >
           {product.category}
         </Badge>
-        {inOrder && (
-          <span className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground shadow">
-            {quantity}
-          </span>
-        )}
+        <div className="absolute inset-x-2 bottom-2 flex flex-wrap items-center justify-end gap-1">
+          {(blocked || soldOut) && (
+            <Badge className="mr-auto bg-background text-foreground">
+              {blocked ? "Bloqueado" : "Esgotado"}
+            </Badge>
+          )}
+          {inOrder && (
+            <span className="flex min-h-7 max-w-full items-center justify-center rounded-full bg-accent px-2 text-xs font-semibold tabular-nums text-accent-foreground shadow">
+              {String(quantity).replace(".", ",")}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-3">
@@ -75,29 +87,18 @@ export function ProductCard({ product, quantity, onAdd, onRemove }: ProductCardP
 
         {/* Controles de quantidade */}
         {inOrder ? (
-          <div className="flex items-center justify-between gap-2 rounded-lg bg-secondary p-1">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={`Remover uma unidade de ${product.name}`}
-              onClick={() => onRemove(product.id)}
-              className="text-primary hover:bg-background"
-            >
-              <Minus />
-            </Button>
-            <span className="min-w-8 text-center text-sm font-semibold text-foreground">{quantity}</span>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={`Adicionar uma unidade de ${product.name}`}
-              onClick={handleAdd}
-              className="text-primary hover:bg-background"
-            >
-              <Plus />
-            </Button>
-          </div>
+          <QuantityControl
+            value={quantity}
+            min={step}
+            max={Math.max(quantity, disabled ? 0 : available)}
+            step={step}
+            label={`Quantidade de ${product.name}`}
+            onChange={(value) => onQuantityChange(product.id, value)}
+            onIncrement={() => onAdd(product)}
+            onDecrement={() => onRemove(product.id)}
+          />
         ) : (
-          <Button variant="action" size="sm" onClick={handleAdd} className="w-full">
+          <Button variant="action" size="sm" onClick={() => onAdd(product)} disabled={!canAdd} className="w-full">
             <Plus />
             Adicionar
           </Button>

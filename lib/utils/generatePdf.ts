@@ -138,7 +138,7 @@ export async function generateOrderPdf(order: Order): Promise<jsPDF> {
   const orderIdCenter = (logoRight + dateLeft) / 2
   pdf.setFont("helvetica", "bold")
   pdf.setFontSize(13)
-  pdf.text(order.id, orderIdCenter, headerTextY, { align: "center" })
+  pdf.text(`Pedido ${order.number}`, orderIdCenter, headerTextY, { align: "center" })
 
   pdf.setFont("helvetica", "normal")
   pdf.setFontSize(8)

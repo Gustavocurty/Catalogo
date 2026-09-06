@@ -33,17 +33,18 @@ export function CartFAB({ count, subtotal }: CartFABProps) {
       onClick={() => router.push("/carrinho")}
       aria-label={`Abrir carrinho com ${count} ${count === 1 ? "item" : "itens"}`}
       className={cn(
-        "fixed bottom-5 right-5 z-40 flex items-center gap-3 rounded-full bg-accent py-3 pl-4 pr-5 text-accent-foreground shadow-xl transition-transform hover:bg-accent/90 active:scale-95",
-        bump && "scale-110",
+        "hover-lift fixed right-4 z-30 flex max-w-[calc(100vw-2.5rem)] flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-3xl bg-brand-gradient px-4 py-3 text-white shadow-xl hover:brightness-110 active:scale-95 lg:right-5",
+        "bottom-[calc(var(--bottom-nav-h,0px)+0.75rem)] lg:bottom-5",
+        bump && "-translate-y-1",
       )}
     >
-      <span className="relative">
-        <ShoppingCart className="size-6" />
-        <span className="absolute -right-2 -top-2 flex min-w-5 items-center justify-center rounded-full bg-white px-1 text-xs font-bold text-accent">
-          {count}
+      <span className="flex min-w-0 items-center gap-2">
+        <ShoppingCart className="size-6 shrink-0" aria-hidden="true" />
+        <span className="min-w-5 break-all rounded-full bg-white px-2 text-center text-xs font-bold tabular-nums text-accent">
+          {String(count).replace(".", ",")}
         </span>
       </span>
-      <span className="text-sm font-semibold">{formatCurrency(subtotal)}</span>
+      <span className="min-w-0 break-all text-xs font-semibold sm:text-sm">{formatCurrency(subtotal)}</span>
     </button>
   )
 }

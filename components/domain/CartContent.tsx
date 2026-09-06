@@ -1,39 +1,41 @@
 "use client"
 
-import { useCallback, useRef } from "react"
+import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { FileText, ShoppingCart } from "lucide-react"
+import { FileCheck, ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input, Label, Textarea } from "@/components/ui/input"
 import { useCart } from "@/lib/hooks/useCart"
 import { useOrder } from "@/lib/hooks/useOrder"
 import { useSeller } from "@/lib/hooks/useSeller"
+import { ApiError } from "@/lib/local/errors"
+import { orderService } from "@/lib/services/orderService"
 import { useToast } from "@/components/ui/toast"
-import { formatCurrency, generateOrderId, maskDocument, maskPhone } from "@/lib/utils/format"
-import type { Order } from "@/lib/types"
+import { formatCurrency } from "@/lib/utils/format"
 import { CartItem } from "./CartItem"
+import { CustomerSelector } from "./CustomerSelector"
 
 export function CartContent() {
   const router = useRouter()
   const { toast } = useToast()
   const { seller } = useSeller()
-  const { items, addItem, removeOne, removeItem, subtotal } = useCart()
+  const { items, addItem, removeOne, removeItem, setQuantity, clear, subtotal } = useCart()
   const {
     customer,
     notes,
     discountPercent,
-    setCustomer,
     setNotes,
     setDiscountPercent,
     setLastOrder,
   } = useOrder()
 
-  const docRef = useRef<HTMLInputElement>(null)
-  const phoneRef = useRef<HTMLInputElement>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const idempotencyRef = useRef<string | null>(null)
 
   const discountValue = subtotal * (discountPercent / 100)
   const total = subtotal - discountValue
+  const hasCustomer = !!customer.id && customer.active !== false
 
   function handleAddOne(productId: string) {
     const item = items.find((i) => i.product.id === productId)
@@ -43,65 +45,45 @@ export function CartContent() {
     }
   }
 
-  const handleDocChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const cursorPos = e.target.selectionStart ?? 0
-      const rawInput = e.target.value
-      const rawDigits = rawInput.replace(/\D/g, "")
-      const masked = maskDocument(rawDigits)
-      setCustomer({ document: masked })
-      requestAnimationFrame(() => {
-        if (docRef.current) {
-          const addedChars = masked.length - rawInput.length
-          const newPos = Math.max(0, Math.min(cursorPos + addedChars, masked.length))
-          docRef.current.setSelectionRange(newPos, newPos)
-        }
-      })
-    },
-    [setCustomer],
-  )
-
-  const handlePhoneChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const cursorPos = e.target.selectionStart ?? 0
-      const rawInput = e.target.value
-      const rawDigits = rawInput.replace(/\D/g, "")
-      const masked = maskPhone(rawDigits)
-      setCustomer({ phone: masked })
-      requestAnimationFrame(() => {
-        if (phoneRef.current) {
-          const addedChars = masked.length - rawInput.length
-          const newPos = Math.max(0, Math.min(cursorPos + addedChars, masked.length))
-          phoneRef.current.setSelectionRange(newPos, newPos)
-        }
-      })
-    },
-    [setCustomer],
-  )
-
-  function handleGenerate() {
+  async function handleConfirm() {
     if (items.length === 0) {
-      toast("Adicione itens ao pedido antes de gerar a nota.", "info")
+      toast("Adicione itens ao pedido antes de confirmar.", "info")
       return
     }
-    if (!customer.companyName.trim()) {
-      toast("Informe a razão social / nome da empresa.", "info")
+    if (!hasCustomer || !customer.id) {
+      toast("Selecione um cliente cadastrado antes de confirmar.", "info")
+      document.getElementById("cart-customer")?.focus()
       return
     }
-    const order: Order = {
-      id: generateOrderId(),
-      createdAt: new Date().toISOString(),
-      seller: seller!,
-      customer,
-      items,
-      notes,
-      discountPercent,
-      subtotal,
-      discountValue,
-      total,
+    if (!seller) return
+
+    if (!idempotencyRef.current) {
+      idempotencyRef.current = crypto.randomUUID()
     }
-    setLastOrder(order)
-    router.push("/nota")
+
+    setSubmitting(true)
+    try {
+      const order = await orderService.create({
+        customerId: customer.id,
+        items: items.map((item) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+          expectedPrice: item.product.price,
+        })),
+        notes,
+        discountPercent,
+        idempotencyKey: idempotencyRef.current,
+      }, seller)
+      setLastOrder(order)
+      clear()
+      idempotencyRef.current = null
+      toast(`Pedido ${order.number} registrado como pendente.`)
+      router.push(`/pedidos/?id=${order.id}`)
+    } catch (cause) {
+      toast(cause instanceof ApiError ? cause.message : "Não foi possível confirmar o pedido.", "info")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (items.length === 0) {
@@ -119,8 +101,15 @@ export function CartContent() {
 
   return (
     <div className="mx-auto grid max-w-5xl gap-5 px-4 py-5 pb-28 lg:grid-cols-[1fr_360px]">
-      {/* Coluna principal */}
       <div className="flex flex-col gap-5">
+        <Card className="space-y-3 p-4">
+          <h2 className="text-base font-semibold text-foreground">Cliente do pedido</h2>
+          {!hasCustomer ? (
+            <p className="text-sm text-muted-foreground">Escolha um cliente para confirmar o pedido. Os itens atuais serão mantidos.</p>
+          ) : null}
+          <CustomerSelector id="cart-customer" returnTo="/carrinho" keepCart />
+        </Card>
+
         <Card className="p-4">
           <h2 className="mb-1 text-base font-semibold text-foreground">Itens do pedido</h2>
           <div>
@@ -131,63 +120,9 @@ export function CartContent() {
                 onAdd={handleAddOne}
                 onRemoveOne={removeOne}
                 onRemove={removeItem}
+                onQuantityChange={setQuantity}
               />
             ))}
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <h2 className="mb-3 text-base font-semibold text-foreground">Dados do cliente</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Label htmlFor="companyName">Razão Social / Nome da empresa</Label>
-              <Input
-                id="companyName"
-                value={customer.companyName}
-                onChange={(e) => setCustomer({ companyName: e.target.value })}
-                placeholder="Ex.: Construtora Horizonte Ltda."
-              />
-            </div>
-            <div>
-              <Label htmlFor="document">CNPJ / CPF</Label>
-              <Input
-                id="document"
-                ref={docRef}
-                value={customer.document}
-                onChange={handleDocChange}
-                placeholder="00.000.000/0000-00"
-                inputMode="numeric"
-              />
-            </div>
-            <div>
-              <Label htmlFor="phone">Telefone</Label>
-              <Input
-                id="phone"
-                ref={phoneRef}
-                value={customer.phone}
-                onChange={handlePhoneChange}
-                placeholder="(00) 00000-0000"
-                inputMode="tel"
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <Label htmlFor="address">Endereço</Label>
-              <Input
-                id="address"
-                value={customer.address}
-                onChange={(e) => setCustomer({ address: e.target.value })}
-                placeholder="Rua, número, bairro, cidade - UF"
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <Label htmlFor="contactName">Nome do responsável</Label>
-              <Input
-                id="contactName"
-                value={customer.contactName}
-                onChange={(e) => setCustomer({ contactName: e.target.value })}
-                placeholder="Ex.: Maria Souza"
-              />
-            </div>
           </div>
         </Card>
 
@@ -202,26 +137,25 @@ export function CartContent() {
         </Card>
       </div>
 
-      {/* Resumo */}
-      <div className="lg:sticky lg:top-20 lg:self-start">
+      <div className="lg:sticky lg:self-start" style={{ top: "calc(var(--header-h, 6rem) + 1rem)" }}>
         <Card className="p-4">
           <h2 className="mb-3 text-base font-semibold text-foreground">Resumo</h2>
 
           <div className="mb-3">
             <Label htmlFor="discount">Desconto (%)</Label>
-              <Input
-                id="discount"
-                type="number"
-                min={0}
-                max={100}
-                value={discountPercent}
-                onChange={(e) => {
-                  const v = Number(e.target.value)
-                  setDiscountPercent(Number.isNaN(v) ? 0 : Math.min(100, Math.max(0, v)))
-                }}
-                placeholder="0"
-                inputMode="numeric"
-              />
+            <Input
+              id="discount"
+              type="number"
+              min={0}
+              max={100}
+              value={discountPercent}
+              onChange={(e) => {
+                const v = Number(e.target.value)
+                setDiscountPercent(Number.isNaN(v) ? 0 : Math.min(100, Math.max(0, v)))
+              }}
+              placeholder="0"
+              inputMode="numeric"
+            />
           </div>
 
           <dl className="flex flex-col gap-2 border-t border-border pt-3 text-sm">
@@ -239,9 +173,9 @@ export function CartContent() {
             </div>
           </dl>
 
-          <Button variant="action" size="lg" className="mt-4 w-full" onClick={handleGenerate}>
-            <FileText />
-            Gerar Nota do Pedido
+          <Button variant="action" size="lg" className="mt-4 w-full" onClick={handleConfirm} disabled={submitting || !hasCustomer}>
+            <FileCheck />
+            {submitting ? "Confirmando..." : "Confirmar pedido"}
           </Button>
         </Card>
       </div>

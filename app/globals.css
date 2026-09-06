@@ -45,9 +45,9 @@
 
 :root {
   color-scheme: light;
-  --background: #ffffff;
+  --background: #f8f7ff;
   --foreground: #1f1830;
-  --card: #f8f7ff;
+  --card: #ffffff;
   --card-foreground: #1f1830;
   --popover: #ffffff;
   --popover-foreground: #1f1830;
@@ -73,73 +73,54 @@
 
 .dark {
   color-scheme: dark;
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    color-scheme: dark;
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-  }
+  --background: #1a1230;
+  --foreground: #f4efff;
+  --card: #261a42;
+  --card-foreground: #f4efff;
+  --popover: #261a42;
+  --popover-foreground: #f4efff;
+  --primary: #c4a4f0;
+  --primary-foreground: #1a1230;
+  --secondary: #322456;
+  --secondary-foreground: #e6d9ff;
+  --muted: #2c1f4a;
+  --muted-foreground: #b8accf;
+  --accent: #9b7bd4;
+  --accent-foreground: #ffffff;
+  --destructive: #f07178;
+  --border: #3d2e62;
+  --input: #3d2e62;
+  --ring: #9b7bd4;
+  --chart-1: #c4a4f0;
+  --chart-2: #7eb0e8;
+  --chart-3: #9b7bd4;
+  --chart-4: #b794f6;
+  --chart-5: #5aa7d8;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+    background-color: var(--background);
+    background-attachment: fixed;
+    background-image: linear-gradient(180deg, #ffffff 0%, #f8f7ff 55%, #efe8ff 100%);
+    --bottom-nav-h: 0px;
+  }
+  html.dark {
+    background-image: linear-gradient(180deg, #1a1230 0%, #241848 70%, #1e1640 100%);
+  }
+  body {
+    @apply bg-transparent text-foreground;
   }
 }
 
 @layer utilities {
+  .page-enter {
+    animation: page-enter 220ms ease-out;
+  }
   .bg-brand-gradient {
     background-image: linear-gradient(135deg, #6b3fa0 0%, #3b82c8 100%);
   }
@@ -148,5 +129,50 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+  .hover-lift {
+    transition:
+      transform 300ms ease,
+      box-shadow 300ms ease,
+      border-color 300ms ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 28px -10px rgb(107 63 160 / 28%);
+    }
+    .dark .hover-lift:hover {
+      box-shadow: 0 14px 28px -10px rgb(155 123 212 / 35%);
+    }
+  }
+  .hover-zoom {
+    transition: transform 300ms ease;
+  }
+  .group:hover .hover-zoom {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hover-lift,
+  .hover-lift:hover,
+  .hover-zoom,
+  .group:hover .hover-zoom,
+  .page-enter {
+    animation: none;
+    transition: none;
+    transform: none;
+    box-shadow: none;
   }
 }
