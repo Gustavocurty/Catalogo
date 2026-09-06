@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react"
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react"
+import { createPortal } from "react-dom"
 import { ChevronDown, Download, Mail, MessageCircle, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/toast"
@@ -26,7 +27,10 @@ export function OrderShare({ order, compact = false, align, fullWidth = false }:
   const [generating, setGenerating] = useState(false)
   const [nativeShare, setNativeShare] = useState(false)
   const [open, setOpen] = useState(false)
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 })
   const rootRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const menuId = useId()
   const size = compact ? "sm" : "default"
   const menuAlign = align ?? (compact ? "start" : "end")
@@ -35,13 +39,43 @@ export function OrderShare({ order, compact = false, align, fullWidth = false }:
     setNativeShare(canUseNativeShare())
   }, [])
 
+  useLayoutEffect(() => {
+    if (!open) return
+
+    function placeMenu() {
+      const button = buttonRef.current
+      const menu = menuRef.current
+      if (!button) return
+      const rect = button.getBoundingClientRect()
+      const width = fullWidth ? rect.width : Math.min(18 * 16, window.innerWidth - 16)
+      const height = menu?.offsetHeight ?? 220
+      const gap = 4
+      const spaceBelow = window.innerHeight - rect.bottom - 12
+      const openUp = spaceBelow < height && rect.top > height + gap
+      const top = openUp ? rect.top - height - gap : rect.bottom + gap
+      const preferredLeft = menuAlign === "end" ? rect.right - width : rect.left
+      const left = Math.max(8, Math.min(preferredLeft, window.innerWidth - width - 8))
+      setCoords({ top, left, width })
+    }
+
+    placeMenu()
+    const frame = requestAnimationFrame(placeMenu)
+    window.addEventListener("resize", placeMenu)
+    window.addEventListener("scroll", placeMenu, true)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener("resize", placeMenu)
+      window.removeEventListener("scroll", placeMenu, true)
+    }
+  }, [open, fullWidth, menuAlign, nativeShare])
+
   useEffect(() => {
     if (!open) return
 
     function handlePointerDown(event: PointerEvent) {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        setOpen(false)
-      }
+      const target = event.target as Node
+      if (rootRef.current?.contains(target) || menuRef.current?.contains(target)) return
+      setOpen(false)
     }
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -102,9 +136,43 @@ export function OrderShare({ order, compact = false, align, fullWidth = false }:
     toast(`Abrindo ${label}...`)
   }
 
+  const menu = open ? (
+    <div
+      ref={menuRef}
+      id={menuId}
+      role="menu"
+      aria-label="Opções de compartilhamento"
+      style={{ top: coords.top, left: coords.left, width: coords.width }}
+      className={cn(
+        "fixed z-[60] overflow-hidden rounded-xl border border-border bg-popover p-1 shadow-lg",
+        coords.width <= 0 && "invisible",
+      )}
+    >
+      {nativeShare ? (
+        <ShareMenuItem onClick={handleNativeShare} disabled={generating}>
+          <Share2 />
+          Outros apps
+        </ShareMenuItem>
+      ) : null}
+      <ShareMenuItem onClick={() => openShare(whatsappOrderUrl(order), "WhatsApp")}>
+        <MessageCircle />
+        WhatsApp
+      </ShareMenuItem>
+      <ShareMenuItem onClick={() => openShare(mailtoOrderUrl(order), "e-mail")}>
+        <Mail />
+        E-mail
+      </ShareMenuItem>
+      <ShareMenuItem onClick={handlePdf} disabled={generating}>
+        <Download />
+        {generating ? "Gerando PDF..." : "Baixar PDF"}
+      </ShareMenuItem>
+    </div>
+  ) : null
+
   return (
     <div ref={rootRef} className={cn("relative", fullWidth && "w-full")}>
       <Button
+        ref={buttonRef}
         variant="action"
         size={size}
         aria-expanded={open}
@@ -119,37 +187,7 @@ export function OrderShare({ order, compact = false, align, fullWidth = false }:
         {generating ? "Preparando..." : "Compartilhar"}
         <ChevronDown className={cn("transition-transform", open && "rotate-180")} />
       </Button>
-      {open ? (
-        <div
-          id={menuId}
-          role="menu"
-          aria-label="Opções de compartilhamento"
-          className={cn(
-            "absolute z-40 mt-1 overflow-hidden rounded-xl border border-border bg-popover p-1 shadow-lg",
-            fullWidth ? "inset-x-0 w-auto min-w-0" : "w-[min(18rem,calc(100vw-2rem))]",
-            !fullWidth && (menuAlign === "end" ? "right-0" : "left-0"),
-          )}
-        >
-          {nativeShare ? (
-            <ShareMenuItem onClick={handleNativeShare} disabled={generating}>
-              <Share2 />
-              Outros apps
-            </ShareMenuItem>
-          ) : null}
-          <ShareMenuItem onClick={() => openShare(whatsappOrderUrl(order), "WhatsApp")}>
-            <MessageCircle />
-            WhatsApp
-          </ShareMenuItem>
-          <ShareMenuItem onClick={() => openShare(mailtoOrderUrl(order), "e-mail")}>
-            <Mail />
-            E-mail
-          </ShareMenuItem>
-          <ShareMenuItem onClick={handlePdf} disabled={generating}>
-            <Download />
-            {generating ? "Gerando PDF..." : "Baixar PDF"}
-          </ShareMenuItem>
-        </div>
-      ) : null}
+      {typeof document !== "undefined" && menu ? createPortal(menu, document.body) : null}
     </div>
   )
 }

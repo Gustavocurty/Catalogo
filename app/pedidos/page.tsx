@@ -6,8 +6,10 @@ import { OrderDetail } from "@/components/domain/OrderDetail"
 import { OrderList } from "@/components/domain/OrderList"
 
 function OrdersScreen() {
-  const id = useSearchParams().get("id")
-  return id ? <OrderDetail orderId={id} /> : <OrderList />
+  const search = useSearchParams()
+  const id = search.get("id")
+  const status = search.get("status") ?? ""
+  return id ? <OrderDetail orderId={id} /> : <OrderList initialStatus={status} />
 }
 
 export default function OrdersPage() {

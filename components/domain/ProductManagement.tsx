@@ -1,16 +1,20 @@
 "use client"
 
 import { useEffect, useState, type FormEvent } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Package, Plus, Search } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input, Label, Textarea } from "@/components/ui/input"
+import { useToast } from "@/components/ui/toast"
 import { useSeller } from "@/lib/hooks/useSeller"
 import { ApiError } from "@/lib/local/errors"
 import { productService } from "@/lib/services/productService"
 import type { Product, StockMovement } from "@/lib/types"
 import { ProductForm } from "./ProductForm"
+
+const LIST_HREF = "/produtos/"
 
 const quantity = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 3 })
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" })
@@ -130,18 +134,23 @@ function StockPanel({ product, onSaved, onClose, onReload }: {
 }
 
 export function ProductManagement() {
+  const router = useRouter()
+  const params = useSearchParams()
+  const { toast } = useToast()
   const { seller } = useSeller()
   const canEdit = seller?.role === "ADMIN"
   const canAdjust = canEdit || seller?.role === "OPERATIONS"
+  const isNew = params.get("new") === "1"
+  const editId = isNew ? null : params.get("id")
+  const stockId = isNew || editId ? null : params.get("stock")
+  const dedicated = isNew || !!editId || !!stockId
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [notice, setNotice] = useState("")
   const [reload, setReload] = useState(0)
   const [search, setSearch] = useState("")
   const [status, setStatus] = useState("all")
   const [stock, setStock] = useState("all")
-  const [panel, setPanel] = useState<{ mode: "edit" | "stock"; product: Product } | "new" | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -149,28 +158,31 @@ export function ProductManagement() {
     setError("")
     productService.getAll(true)
       .then((data) => { if (!controller.signal.aborted) setProducts(data) })
-      .catch((cause) => { if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : "Nao foi possivel carregar os produtos.") })
+      .catch((cause) => { if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : "Não foi possível carregar os produtos.") })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
   }, [reload])
 
+  function goList() {
+    router.push(LIST_HREF)
+  }
+
   function refresh() {
-    if (panel && !window.confirm("Recarregar descarta as alteracoes nao salvas deste painel. Continuar?")) return
-    setPanel(null)
-    setNotice("")
+    if (dedicated && !window.confirm("Recarregar descarta as alterações não salvas desta tela. Continuar?")) return
     setReload((value) => value + 1)
   }
 
-  function saveProduct(saved: Product) {
-    setProducts((current) => panel === "new" ? [saved, ...current] : current.map((item) => item.id === saved.id ? saved : item))
-    if (panel && panel !== "new" && panel.mode === "stock") {
-      setPanel({ mode: "stock", product: saved })
-    } else {
-      setPanel(null)
-      setNotice(`Produto ${saved.name} salvo.`)
-    }
+  function saveProduct(saved: Product, stayOnStock = false) {
+    setProducts((current) => current.some((item) => item.id === saved.id)
+      ? current.map((item) => item.id === saved.id ? saved : item)
+      : [saved, ...current])
+    if (stayOnStock) return
+    toast(`Produto ${saved.name} salvo.`)
+    goList()
   }
 
+  const focusedId = editId || stockId
+  const focused = focusedId ? products.find((product) => product.id === focusedId) : undefined
   const term = search.trim().toLocaleLowerCase("pt-BR")
   const filtered = products.filter((product) =>
     [product.sku, product.name, product.category, product.description].some((value) => value.toLocaleLowerCase("pt-BR").includes(term)) &&
@@ -178,24 +190,75 @@ export function ProductManagement() {
     (stock === "all" || (stock === "empty" ? product.stock <= 0 : product.stock > 0 && product.stock <= (product.minimumStock ?? 0))),
   )
 
+  if (dedicated) {
+    const waitingForProduct = !!focusedId && loading
+    const missing = !loading && !error && !!focusedId && !focused
+    return (
+      <main className="mx-auto max-w-5xl space-y-4 px-4 py-5 pb-12">
+        {error && <Card className="space-y-3 border-destructive/30 p-4"><p role="alert" className="text-sm text-destructive">{error}</p><Button variant="outline" onClick={refresh}>Tentar novamente</Button></Card>}
+        {waitingForProduct && <p role="status" className="py-8 text-center text-muted-foreground">Carregando produto...</p>}
+        {missing && (
+          <Card className="space-y-3 p-4">
+            <p role="alert" className="text-sm text-destructive">Produto não encontrado. Ele pode ter sido removido ou o endereço está incompleto.</p>
+            <Button variant="outline" onClick={goList}>Voltar à lista</Button>
+          </Card>
+        )}
+        {isNew && canEdit && (
+          <ProductForm key="new" onSaved={(saved) => saveProduct(saved)} onCancel={goList} onReload={refresh} />
+        )}
+        {!loading && !error && isNew && !canEdit && (
+          <Card className="space-y-3 p-4">
+            <p role="alert" className="text-sm text-destructive">Seu perfil não pode cadastrar produtos.</p>
+            <Button variant="outline" onClick={goList}>Voltar à lista</Button>
+          </Card>
+        )}
+        {!loading && !error && focused && editId && canEdit && (
+          <ProductForm
+            key={focused.id}
+            product={focused}
+            stockHref={`${LIST_HREF}?stock=${encodeURIComponent(focused.id)}`}
+            onSaved={(saved) => saveProduct(saved)}
+            onCancel={goList}
+            onReload={refresh}
+          />
+        )}
+        {!loading && !error && focused && editId && !canEdit && (
+          <Card className="space-y-3 p-4">
+            <p role="alert" className="text-sm text-destructive">Seu perfil não pode editar o cadastro deste produto.</p>
+            <Button variant="outline" onClick={goList}>Voltar à lista</Button>
+          </Card>
+        )}
+        {!loading && !error && focused && stockId && canAdjust && (
+          <StockPanel
+            key={focused.id}
+            product={focused}
+            onSaved={(saved) => saveProduct(saved, true)}
+            onClose={goList}
+            onReload={refresh}
+          />
+        )}
+      </main>
+    )
+  }
+
   return (
     <main className="mx-auto max-w-5xl space-y-4 px-4 py-5 pb-12">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><h2 className="text-xl font-semibold">Gestao de produtos</h2><p className="mt-1 text-sm text-muted-foreground">{canEdit ? "Cadastros, precos e controle de estoque em um so lugar." : "Consulte os produtos e registre movimentacoes de estoque."}</p></div>
-        {canEdit && <Button variant="action" disabled={loading || !!error || !!panel} onClick={() => { setNotice(""); setPanel("new") }}><Plus />Novo produto</Button>}
+        <div>
+          <h2 className="text-xl font-semibold">Gestão de produtos</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{canEdit ? "Cadastros, preços e controle de estoque em um só lugar." : "Consulte os produtos e registre movimentações de estoque."}</p>
+        </div>
+        {canEdit && <Button variant="action" disabled={loading || !!error} onClick={() => router.push(`${LIST_HREF}?new=1`)}><Plus />Novo produto</Button>}
       </div>
-      {notice && <p role="status" className="rounded-lg bg-secondary p-3 text-sm text-secondary-foreground">{notice}</p>}
-      {canEdit && (panel === "new" || panel?.mode === "edit") && <ProductForm key={panel === "new" ? "new" : panel.product.id} product={panel === "new" ? undefined : panel.product} onSaved={saveProduct} onCancel={() => setPanel(null)} onReload={refresh} />}
-      {canAdjust && panel && panel !== "new" && panel.mode === "stock" && <StockPanel key={panel.product.id} product={panel.product} onSaved={saveProduct} onClose={() => setPanel(null)} onReload={refresh} />}
       <Card className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-[1fr_140px_160px_auto] lg:items-end">
         <div><Label htmlFor="product-search">Buscar produtos</Label><div className="relative"><Search className="pointer-events-none absolute left-3 top-3 size-5 text-muted-foreground" /><Input id="product-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nome, SKU, categoria..." className="pl-10" /></div></div>
-        <div><Label htmlFor="product-status">Situacao</Label><select id="product-status" value={status} onChange={(event) => setStatus(event.target.value)} className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-ring"><option value="all">Todos</option><option value="active">Ativos</option><option value="inactive">Inativos</option></select></div>
+        <div><Label htmlFor="product-status">Situação</Label><select id="product-status" value={status} onChange={(event) => setStatus(event.target.value)} className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-ring"><option value="all">Todos</option><option value="active">Ativos</option><option value="inactive">Inativos</option></select></div>
         <div><Label htmlFor="product-stock">Disponibilidade</Label><select id="product-stock" value={stock} onChange={(event) => setStock(event.target.value)} className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-ring"><option value="all">Todos os saldos</option><option value="low">Estoque baixo</option><option value="empty">Esgotados</option></select></div>
-        <Button variant="outline" disabled={loading || !!panel} onClick={refresh}>Atualizar</Button>
+        <Button variant="outline" disabled={loading} onClick={refresh}>Atualizar</Button>
       </Card>
-      {error && <Card className="space-y-3 border-destructive/30 p-4"><p role="alert" className="text-sm text-destructive">{error}</p><Button variant="outline" disabled={loading || !!panel} onClick={refresh}>Tentar novamente</Button></Card>}
+      {error && <Card className="space-y-3 border-destructive/30 p-4"><p role="alert" className="text-sm text-destructive">{error}</p><Button variant="outline" disabled={loading} onClick={refresh}>Tentar novamente</Button></Card>}
       {loading ? <p role="status" className="py-8 text-center text-muted-foreground">Carregando produtos...</p> : !error && <>
-        <p className="text-sm text-muted-foreground">{filtered.length} produto(s) encontrado(s). Estoque baixo: disponivel positivo ate o minimo cadastrado.</p>
+        <p className="text-sm text-muted-foreground">{filtered.length} produto(s) encontrado(s). Estoque baixo: disponível positivo até o mínimo cadastrado.</p>
         {filtered.length === 0 ? <Card className="p-8 text-center"><Package className="mx-auto size-10 text-muted-foreground" /><p className="mt-3 font-medium">Nenhum produto encontrado</p><p className="mt-1 text-sm text-muted-foreground">Ajuste os filtros{canEdit ? " ou cadastre um produto" : ""}.</p></Card> :
           <div className="grid gap-3 sm:grid-cols-2">{filtered.map((product) => <Card key={product.id} className="hover-lift flex min-w-0 flex-col p-4">
             <div className="flex items-start gap-3">
@@ -207,10 +270,10 @@ export function ProductManagement() {
               {product.stock <= 0 ? <Badge className="bg-destructive/10 text-destructive">Esgotado</Badge> : product.stock <= (product.minimumStock ?? 0) && <Badge className="bg-secondary text-secondary-foreground">Estoque baixo</Badge>}
             </div>
             {product.description && <p className="mb-3 line-clamp-2 break-words text-sm text-muted-foreground">{product.description}</p>}
-            <dl className="grid grid-cols-2 gap-2 text-sm"><div><dt className="text-muted-foreground">Disponivel</dt><dd className="font-medium">{quantity.format(product.stock)} {product.unit}</dd></div><div><dt className="text-muted-foreground">Fisico / reservado</dt><dd>{product.physicalStock == null ? "-" : quantity.format(product.physicalStock)} / {product.reservedStock == null ? "-" : quantity.format(product.reservedStock)} {product.unit}</dd></div><div><dt className="text-muted-foreground">Minimo</dt><dd>{quantity.format(product.minimumStock ?? 0)} {product.unit}</dd></div><div><dt className="text-muted-foreground">Multiplo de venda</dt><dd>{quantity.format(product.quantityStep ?? 1)} {product.unit}</dd></div></dl>
+            <dl className="grid grid-cols-2 gap-2 text-sm"><div><dt className="text-muted-foreground">Disponível</dt><dd className="font-medium">{quantity.format(product.stock)} {product.unit}</dd></div><div><dt className="text-muted-foreground">Físico / reservado</dt><dd>{product.physicalStock == null ? "-" : quantity.format(product.physicalStock)} / {product.reservedStock == null ? "-" : quantity.format(product.reservedStock)} {product.unit}</dd></div><div><dt className="text-muted-foreground">Mínimo</dt><dd>{quantity.format(product.minimumStock ?? 0)} {product.unit}</dd></div><div><dt className="text-muted-foreground">Múltiplo de venda</dt><dd>{quantity.format(product.quantityStep ?? 1)} {product.unit}</dd></div></dl>
             <div className="mt-auto flex flex-wrap gap-2 pt-4">
-              {canEdit && <Button variant="outline" disabled={!!panel} onClick={() => { setNotice(""); setPanel({ mode: "edit", product }); window.scrollTo({ top: 0, behavior: "smooth" }) }}>Editar produto</Button>}
-              {canAdjust && <Button disabled={!!panel} onClick={() => { setNotice(""); setPanel({ mode: "stock", product }); window.scrollTo({ top: 0, behavior: "smooth" }) }}>Estoque / historico</Button>}
+              {canEdit && <Button variant="outline" onClick={() => router.push(`${LIST_HREF}?id=${encodeURIComponent(product.id)}`)}>Editar produto</Button>}
+              {canAdjust && <Button onClick={() => router.push(`${LIST_HREF}?stock=${encodeURIComponent(product.id)}`)}>Estoque / histórico</Button>}
             </div>
           </Card>)}</div>}
       </>}

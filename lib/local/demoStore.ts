@@ -131,13 +131,12 @@ export function updateProduct(productId: string, input: Partial<Product> & { ver
     if (index < 0) throw new ApiError("Produto não encontrado.", 404)
     const current = state.products[index]
     if (current.version !== input.version) throw new ApiError("Produto alterado por outra sessão.", 409)
-    if (input.sku && state.products.some((product) => product.id !== productId && product.sku.toLowerCase() === input.sku!.toLowerCase())) {
-      throw new ApiError("Já existe um produto com este SKU.", 409)
-    }
     const next = normalizeProduct({
       ...current,
       ...input,
       id: current.id,
+      sku: current.sku,
+      unit: current.unit,
       physicalStock: current.physicalStock,
       reservedStock: current.reservedStock,
       version: (current.version ?? 1) + 1,

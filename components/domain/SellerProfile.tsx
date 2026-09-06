@@ -43,7 +43,6 @@ export function SellerProfile() {
 
   const stats = summarizeOrders(orders ?? [])
   const recent = (orders ?? []).slice(0, 5)
-  const maxStatusCount = Math.max(1, ...stats.byStatus.map((item) => item.count))
   const topCustomers = useMemo(() => {
     const map = new Map<string, { name: string; count: number; total: number }>()
     for (const order of (orders ?? []).filter((item) => item.status !== "CANCELLED")) {
@@ -57,21 +56,23 @@ export function SellerProfile() {
   }, [orders])
 
   return (
-    <main className="mx-auto max-w-5xl space-y-5 px-4 py-6 pb-16">
-      <section className="rounded-2xl bg-brand-gradient p-5 text-white shadow-lg sm:p-6">
-        <p className="text-sm text-white/80">Perfil de acesso</p>
-        <h2 className="mt-1 text-2xl font-semibold tracking-tight">{seller?.name}</h2>
-        <dl className="mt-3 grid gap-2 text-sm text-white/90 sm:grid-cols-3">
-          <div>
-            <dt className="text-white/70">Função</dt>
-            <dd className="font-medium">{seller ? ROLE_LABEL[seller.role] : "—"}</dd>
+    <main className="mx-auto max-w-5xl space-y-4 px-3 py-4 pb-16 sm:space-y-5 sm:px-4 sm:py-6">
+      <section className="rounded-2xl bg-brand-gradient p-4 text-white shadow-lg sm:p-6">
+        <p className="text-xs font-medium uppercase tracking-wide text-white/75 sm:text-sm sm:normal-case sm:tracking-normal">Perfil de acesso</p>
+        <h2 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">{seller?.name}</h2>
+        <dl className="mt-3 text-sm text-white/90">
+          <div className="flex gap-6">
+            <div>
+              <dt className="text-xs text-white/70">Função</dt>
+              <dd className="font-medium">{seller ? ROLE_LABEL[seller.role] : "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-white/70">Código</dt>
+              <dd className="font-medium">{seller?.code ?? "—"}</dd>
+            </div>
           </div>
-          <div>
-            <dt className="text-white/70">Código</dt>
-            <dd className="font-medium">{seller?.code ?? "—"}</dd>
-          </div>
-          <div>
-            <dt className="text-white/70">Visão dos pedidos</dt>
+          <div className="mt-2">
+            <dt className="text-xs text-white/70">Visão dos pedidos</dt>
             <dd className="font-medium">{seller?.role === "ADMIN" ? "Todos os vendedores" : "Somente os seus"}</dd>
           </div>
         </dl>
@@ -93,8 +94,8 @@ export function SellerProfile() {
       ) : null}
 
       <section>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Desempenho</h3>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Desempenho</h3>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <Kpi label="Pedidos feitos" value={orders ? String(stats.activeCount) : "—"} hint={`${stats.cancelledCount} cancelado(s)`} />
           <Kpi label="Total vendido" value={orders ? formatCurrency(stats.sold) : "—"} hint="Sem cancelados" />
           <Kpi label="Ticket médio" value={orders ? formatCurrency(stats.ticket) : "—"} hint={`${stats.customers} cliente(s)`} />
@@ -102,28 +103,28 @@ export function SellerProfile() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-border/80 bg-card/80 p-5 shadow-sm backdrop-blur-sm">
-        <div className="mb-3 flex items-center justify-between gap-3">
+      <section className="rounded-xl border border-border/80 bg-card/80 p-3 shadow-sm backdrop-blur-sm sm:p-5">
+        <div className="mb-2 flex items-center justify-between gap-3 sm:mb-3">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Situação dos pedidos</h3>
           <Link href="/pedidos" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
             Abrir pedidos
           </Link>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2">
           {stats.byStatus.filter((item) => item.status !== "CANCELLED" || item.count > 0).map((item) => (
             <Link
               key={item.status}
-              href="/pedidos"
-              className="hover-lift rounded-xl border border-border/80 bg-background/60 p-3"
+              href={`/pedidos/?status=${item.status}`}
+              className="hover-lift flex min-h-16 flex-col items-center justify-center rounded-xl border border-border/80 bg-background/60 px-1.5 py-2 text-center sm:min-h-20 sm:px-3 sm:py-3"
             >
-              <div className="flex items-center justify-between gap-2">
-                <Badge className={ORDER_STATUS_BADGE[item.status]}>{item.label}</Badge>
-                <span className="text-sm font-semibold tabular-nums">{item.count}</span>
-              </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full bg-brand-gradient" style={{ width: `${(item.count / maxStatusCount) * 100}%` }} />
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">{formatCurrency(item.total)}</p>
+              <span className="text-base font-semibold tabular-nums text-primary sm:text-lg">{item.count}</span>
+              <span className="mt-0.5 line-clamp-2 text-[0.65rem] font-medium leading-tight text-foreground sm:text-xs">
+                {item.label}
+              </span>
+              <span className="mt-1 hidden text-[0.65rem] text-muted-foreground sm:block">{formatCurrency(item.total)}</span>
+              <span className="sr-only">
+                Filtrar pedidos em {item.label}. Total {formatCurrency(item.total)}.
+              </span>
             </Link>
           ))}
         </div>
@@ -200,10 +201,10 @@ export function SellerProfile() {
 
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-xl border border-border/80 bg-card/80 p-4 shadow-sm backdrop-blur-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-1 text-xl font-semibold tabular-nums text-primary">{value}</p>
-      {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
+    <div className="rounded-xl border border-border/80 bg-card/80 px-2.5 py-2.5 shadow-sm backdrop-blur-sm sm:p-4">
+      <p className="text-[0.65rem] font-medium uppercase tracking-wide text-muted-foreground sm:text-xs">{label}</p>
+      <p className="mt-0.5 text-sm font-semibold tabular-nums leading-tight text-primary sm:mt-1 sm:text-xl">{value}</p>
+      {hint ? <p className="mt-0.5 truncate text-[0.65rem] text-muted-foreground sm:mt-1 sm:text-xs">{hint}</p> : null}
     </div>
   )
 }

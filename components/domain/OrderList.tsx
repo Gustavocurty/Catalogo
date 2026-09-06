@@ -21,7 +21,9 @@ import { cn } from "@/lib/utils"
 import type { Order, OrderStatus } from "@/lib/types"
 import { OrderShare } from "./OrderShare"
 
-export function OrderList() {
+const STATUS_FILTERS = [...ORDER_PIPELINE, "CANCELLED"] as OrderStatus[]
+
+export function OrderList({ initialStatus = "" }: { initialStatus?: string }) {
   const router = useRouter()
   const { toast } = useToast()
   const { seller } = useSeller()
@@ -33,9 +35,13 @@ export function OrderList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [search, setSearch] = useState("")
-  const [status, setStatus] = useState("")
+  const [status, setStatus] = useState(() => STATUS_FILTERS.includes(initialStatus as OrderStatus) ? initialStatus : "")
   const [sellerQuery, setSellerQuery] = useState("")
   const [busyId, setBusyId] = useState<string | null>(null)
+
+  useEffect(() => {
+    setStatus(STATUS_FILTERS.includes(initialStatus as OrderStatus) ? initialStatus : "")
+  }, [initialStatus])
 
   useEffect(() => {
     if (!seller) return
@@ -134,7 +140,7 @@ export function OrderList() {
             className="h-11 w-full rounded-lg border border-border bg-background px-3 text-base sm:text-sm"
           >
             <option value="">Todas</option>
-            {([...ORDER_PIPELINE, "CANCELLED"] as OrderStatus[]).map((value) => (
+            {STATUS_FILTERS.map((value) => (
               <option key={value} value={value}>
                 {ORDER_STATUS_LABELS[value]}
               </option>

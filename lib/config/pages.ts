@@ -4,7 +4,12 @@ export function pageChrome(pathname: string, search: URLSearchParams) {
   if (path === "/perfil") return { title: "Perfil" }
   if (path === "/catalogo") return { title: "Catálogo de Produtos" }
   if (path === "/carrinho") return { title: "Revisão do Pedido" }
-  if (path === "/produtos") return { title: "Produtos e estoque", backHref: "/perfil" }
+  if (path === "/produtos") {
+    if (search.get("new") === "1") return { title: "Novo produto", backHref: "/produtos" }
+    if (search.get("id")) return { title: "Editar produto", backHref: "/produtos" }
+    if (search.get("stock")) return { title: "Estoque do produto", backHref: "/produtos" }
+    return { title: "Produtos e estoque", backHref: "/perfil" }
+  }
   if (path === "/nota") return { title: "Nota do Pedido", backHref: "/pedidos" }
   if (path === "/pedidos") {
     return search.get("id")
