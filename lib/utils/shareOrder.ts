@@ -36,25 +36,6 @@ export function mailtoOrderUrl(order: Order) {
   return `mailto:?${params.toString()}`
 }
 
-export function whatsappOrderUrl(order: Order) {
-  const params = new URLSearchParams({
-    text: `${orderShareSubject(order)}\nSegue o PDF do pedido.`,
-  })
-  return `https://wa.me/?${params.toString()}`
-}
-
-export function downloadShareFile(file: File) {
-  const url = URL.createObjectURL(file)
-  const link = document.createElement("a")
-  link.href = url
-  link.download = file.name
-  link.rel = "noopener"
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
-}
-
 export function canUseNativeShare() {
   return typeof navigator !== "undefined" && typeof navigator.share === "function"
 }

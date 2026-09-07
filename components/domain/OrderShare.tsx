@@ -2,17 +2,14 @@
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react"
 import { createPortal } from "react-dom"
-import { ChevronDown, Download, Mail, MessageCircle, Share2 } from "lucide-react"
+import { ChevronDown, Download, Mail, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/toast"
 import { generateOrderPdf } from "@/lib/utils/generatePdf"
 import {
-  canShareFiles,
   canUseNativeShare,
-  downloadShareFile,
   mailtoOrderUrl,
   shareOrderNative,
-  whatsappOrderUrl,
 } from "@/lib/utils/shareOrder"
 import { cn } from "@/lib/utils"
 import type { Order } from "@/lib/types"
@@ -50,7 +47,7 @@ export function OrderShare({ order, compact = false, align, fullWidth = false }:
       if (!button) return
       const rect = button.getBoundingClientRect()
       const width = fullWidth ? rect.width : Math.min(18 * 16, window.innerWidth - 16)
-      const height = menu?.offsetHeight ?? 220
+      const height = menu?.offsetHeight ?? 180
       const gap = 4
       const spaceBelow = window.innerHeight - rect.bottom - 12
       const openUp = spaceBelow < height && rect.top > height + gap
@@ -108,32 +105,22 @@ export function OrderShare({ order, compact = false, align, fullWidth = false }:
       } catch {
         file = undefined
       }
-      await shareOrderNative(order, file)
-    } catch (cause) {
-      if (cause instanceof DOMException && cause.name === "AbortError") return
-      window.open(whatsappOrderUrl(order), "_blank", "noopener,noreferrer")
-      toast("Abrindo WhatsApp para escolher o contato...", "info")
-    } finally {
-      setGenerating(false)
-    }
-  }
-
-  async function handleWhatsApp() {
-    setOpen(false)
-    setGenerating(true)
-    try {
-      const file = await pdfFile()
-      if (canShareFiles([file])) {
+      if (canUseNativeShare()) {
         await shareOrderNative(order, file)
         return
       }
-      downloadShareFile(file)
-      window.open(whatsappOrderUrl(order), "_blank", "noopener,noreferrer")
-      toast("Escolha o contato no WhatsApp. O PDF foi baixado para anexar.", "info")
+      const pdf = await generateOrderPdf(order)
+      pdf.save(`pedido-${order.number}.pdf`)
+      toast("PDF baixado. Envie pelo app que preferir.")
     } catch (cause) {
       if (cause instanceof DOMException && cause.name === "AbortError") return
-      window.open(whatsappOrderUrl(order), "_blank", "noopener,noreferrer")
-      toast(cause instanceof Error ? cause.message : "Abrindo WhatsApp para escolher o contato...", "info")
+      try {
+        const pdf = await generateOrderPdf(order)
+        pdf.save(`pedido-${order.number}.pdf`)
+        toast("PDF baixado. Envie pelo app que preferir.")
+      } catch {
+        toast(cause instanceof Error ? cause.message : "Não foi possível compartilhar o pedido.", "info")
+      }
     } finally {
       setGenerating(false)
     }
@@ -171,15 +158,9 @@ export function OrderShare({ order, compact = false, align, fullWidth = false }:
         coords.width <= 0 && "invisible",
       )}
     >
-      {nativeShare ? (
-        <ShareMenuItem onClick={handleNativeShare} disabled={generating}>
-          <Share2 />
-          Outros apps
-        </ShareMenuItem>
-      ) : null}
-      <ShareMenuItem onClick={handleWhatsApp} disabled={generating}>
-        <MessageCircle />
-        WhatsApp
+      <ShareMenuItem onClick={handleNativeShare} disabled={generating}>
+        <Share2 />
+        Outros apps
       </ShareMenuItem>
       <ShareMenuItem onClick={() => openShare(mailtoOrderUrl(order), "e-mail")}>
         <Mail />
