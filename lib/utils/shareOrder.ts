@@ -36,19 +36,23 @@ export function mailtoOrderUrl(order: Order) {
   return `mailto:?${params.toString()}`
 }
 
-function whatsappPhone(phone: string) {
-  const digits = phone.replace(/\D/g, "")
-  if (digits.length === 10 || digits.length === 11) return `55${digits}`
-  if (digits.length >= 12) return digits
-  return ""
+export function whatsappOrderUrl(order: Order) {
+  const params = new URLSearchParams({
+    text: `${orderShareSubject(order)}\nSegue o PDF do pedido.`,
+  })
+  return `https://wa.me/?${params.toString()}`
 }
 
-export function whatsappOrderUrl(order: Order) {
-  const params = new URLSearchParams({ text: orderShareText(order) })
-  const phone = whatsappPhone(order.customer.phone ?? "")
-  return phone
-    ? `https://wa.me/${phone}?${params.toString()}`
-    : `https://wa.me/?${params.toString()}`
+export function downloadShareFile(file: File) {
+  const url = URL.createObjectURL(file)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = file.name
+  link.rel = "noopener"
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 export function canUseNativeShare() {
@@ -62,8 +66,11 @@ export function canShareFiles(files: File[]) {
 export async function shareOrderNative(order: Order, file?: File) {
   const payload: ShareData = {
     title: orderShareSubject(order),
-    text: orderShareText(order),
   }
-  if (file && canShareFiles([file])) payload.files = [file]
+  if (file && canShareFiles([file])) {
+    payload.files = [file]
+  } else {
+    payload.text = orderShareText(order)
+  }
   await navigator.share(payload)
 }

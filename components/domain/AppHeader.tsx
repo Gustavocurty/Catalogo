@@ -56,7 +56,7 @@ export function AppHeader() {
 
   return (
     <header ref={headerRef} className="sticky top-0 z-30 bg-brand-gradient text-white shadow-md">
-      <div className="mx-auto flex max-w-5xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
+      <div className="mx-auto flex h-12 max-w-5xl items-center gap-2 px-3 sm:h-14 sm:gap-3 sm:px-4">
         {backHref ? (
           <Button
             variant="ghost"

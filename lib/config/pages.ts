@@ -8,7 +8,7 @@ export function pageChrome(pathname: string, search: URLSearchParams) {
     if (search.get("new") === "1") return { title: "Novo produto", backHref: "/produtos" }
     if (search.get("id")) return { title: "Editar produto", backHref: "/produtos" }
     if (search.get("stock")) return { title: "Estoque do produto", backHref: "/produtos" }
-    return { title: "Produtos e estoque", backHref: "/perfil" }
+    return { title: "Produtos e estoque" }
   }
   if (path === "/nota") return { title: "Nota do Pedido", backHref: "/pedidos" }
   if (path === "/pedidos") {
@@ -23,7 +23,7 @@ export function pageChrome(pathname: string, search: URLSearchParams) {
         backHref: search.get("return") === "/carrinho" ? "/carrinho" : "/catalogo",
       }
     }
-    return { title: "Clientes", backHref: "/perfil" }
+    return { title: "Clientes" }
   }
   return { title: "Catálogo Attivus" }
 }

@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/toast"
 import { generateOrderPdf } from "@/lib/utils/generatePdf"
 import {
+  canShareFiles,
   canUseNativeShare,
+  downloadShareFile,
   mailtoOrderUrl,
   shareOrderNative,
   whatsappOrderUrl,
@@ -110,7 +112,28 @@ export function OrderShare({ order, compact = false, align, fullWidth = false }:
     } catch (cause) {
       if (cause instanceof DOMException && cause.name === "AbortError") return
       window.open(whatsappOrderUrl(order), "_blank", "noopener,noreferrer")
-      toast("Abrindo WhatsApp...", "info")
+      toast("Abrindo WhatsApp para escolher o contato...", "info")
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  async function handleWhatsApp() {
+    setOpen(false)
+    setGenerating(true)
+    try {
+      const file = await pdfFile()
+      if (canShareFiles([file])) {
+        await shareOrderNative(order, file)
+        return
+      }
+      downloadShareFile(file)
+      window.open(whatsappOrderUrl(order), "_blank", "noopener,noreferrer")
+      toast("Escolha o contato no WhatsApp. O PDF foi baixado para anexar.", "info")
+    } catch (cause) {
+      if (cause instanceof DOMException && cause.name === "AbortError") return
+      window.open(whatsappOrderUrl(order), "_blank", "noopener,noreferrer")
+      toast(cause instanceof Error ? cause.message : "Abrindo WhatsApp para escolher o contato...", "info")
     } finally {
       setGenerating(false)
     }
@@ -154,7 +177,7 @@ export function OrderShare({ order, compact = false, align, fullWidth = false }:
           Outros apps
         </ShareMenuItem>
       ) : null}
-      <ShareMenuItem onClick={() => openShare(whatsappOrderUrl(order), "WhatsApp")}>
+      <ShareMenuItem onClick={handleWhatsApp} disabled={generating}>
         <MessageCircle />
         WhatsApp
       </ShareMenuItem>
